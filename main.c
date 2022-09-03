@@ -13,7 +13,6 @@ Declared node blueprint
 struct Node
 {
 	int value;
-  struct Node* prev;
 	struct Node* next;
 };
 typedef struct Node Node;
@@ -21,8 +20,6 @@ typedef struct Node Node;
 struct Stack
 {
 	Node* head;
-  Node* tail;
-	int size;
 };
 typedef struct Stack Stack;
 
@@ -37,7 +34,6 @@ Node* createNode(int num)
 	if (newNode) // sanity check
 	{
 		newNode->value = num;
-    newNode->prev =  NULL;
 		newNode->next = NULL;
 	}
 	else
@@ -74,19 +70,40 @@ void push(Stack* stk, int value)
 	if (! stk->head) // Appending first node to empty list
 	{
 		stk->head = newNode;
-    stk->tail = stk->head;
 		return;
 	}
 
-	stk->tail->next = newNode;
-  newNode->prev = stk->tail;
+  Node* lastNode = stk->head;
+  while(lastNode->next)
+      lastNode = lastNode->next;
 
-  stk->tail = newNode;  // set the new node as the last node
+  lastNode->next = newNode;
 }
 
-Node* pop(Stack* stk)
+int pop(Stack* stk)
 {
+  assert(stk->head != NULL && "Popping from empty stack\n");
+
+  Node* lastNode = stk->head;
+  Node* prev = NULL;
+  while (lastNode->next != NULL)
+  {
+    prev = lastNode;
+    lastNode = lastNode->next;    
+  }
+  if (prev)
+  {
+    prev->next = NULL; // if prev exists i.e. more than one element in the stack
+  }
+  else
+  {
+    stk->head = NULL; // only element in stack
+  }
+  int result = lastNode->value;//copy the value
+
+  destroyNode(lastNode);
   
+  return result;
 }
 
 /**********************************************
@@ -122,7 +139,7 @@ void showStack(Stack* stk)
 
 	for (Node* pickPos = stk->head; pickPos != NULL;)
 	{
-		printf("%d", pickPos->value);
+		printf("%d\n", pickPos->value);
 		pickPos = pickPos->next;
 	}
 	printf("\n");
@@ -138,11 +155,21 @@ int main(void)
 	printf("-------------------------------------------\n");
 
   Stack* myStack = (Stack *)malloc(sizeof(Stack));
+  myStack->head = NULL;
   assert (myStack != NULL && "Failed to allocate Stack\n");
 
+  push(myStack, 1);
+  push(myStack, 2);
+  push(myStack, 3);
+  push(myStack, 4);
+  push(myStack, 5);
+
+  for (int i = 0; i < 5; ++i)
+    printf("%d\n", pop(myStack));
+
   
-	// cleanup
-	destroyStack(mystack);
+  // cleanup
+	destroyStack(myStack);
   
 	return 0;
 }
